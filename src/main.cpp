@@ -79,7 +79,7 @@ XMC_CCU4_SLICE_COMPARE_CONFIG CCU4_Slice_Config = {
                                  };
 
   XMC_UART_CH_CONFIG_t uart_config = {
-                                        .baudrate       = 9600,   // Default setting
+                                        .baudrate       = 115200,   // Default setting
                                         .data_bits      = 8,
                                         .frame_length   = 8,
                                         .stop_bits      = 1,
@@ -87,9 +87,7 @@ XMC_CCU4_SLICE_COMPARE_CONFIG CCU4_Slice_Config = {
                                         .parity_mode    = XMC_USIC_CH_PARITY_MODE_NONE
                                       };
 
-void uart_init(uint32_t baudrate) {
-
-  uart_config.baudrate = baudrate;
+void uart_init() {
 
   /*Initialize and configure UART0 on channel 0 */
   XMC_UART_CH_Init(XMC_UART0_CH0, &uart_config);
@@ -111,6 +109,7 @@ void uart_init(uint32_t baudrate) {
 }
 
 void uart_write(char message[]) {
+
   uint8_t idx;
   /*Transmit the string "Infineon" */
   while (message[idx] != 0)
@@ -125,20 +124,22 @@ void uart_write(char message[]) {
 }
 
 extern "C" void CCU40_0_IRQHandler(void) {
+
   // Delete interrupt state
   XMC_CCU4_SLICE_ClearEvent(CCU4_SLICE_Pointer, XMC_CCU4_SLICE_IRQ_ID_PERIOD_MATCH);
 
-  XMC_GPIO_ToggleOutput(XMC_GPIO_PORT5, 8U);
+  XMC_GPIO_ToggleOutput(XMC_GPIO_PORT5, 9U);
+  //XMC_GPIO_ToggleOutput(XMC_GPIO_PORT2, 6U);
 
   uart_write("CCU0_0_IRQHandler\n");
 }
 
 void setup(void) {
     // LED-Pin initialization
-    XMC_GPIO_Init(XMC_GPIO_PORT5, 8U, &Intr_pin);
-
+    XMC_GPIO_Init(XMC_GPIO_PORT5, 9U, &Intr_pin);
+    //XMC_GPIO_Init(XMC_GPIO_PORT2, 6U, &Intr_pin);
     // UART inialization
-    uart_init(115200);
+    uart_init();
 
     // CCU4-Modul initiazation
     XMC_CCU4_Init(CCU4_Module_Pointer, XMC_CCU4_SLICE_MCMS_ACTION_TRANSFER_PR_CR);
@@ -153,7 +154,7 @@ void setup(void) {
     XMC_CCU4_EnableShadowTransfer(CCU4_Module_Pointer, XMC_CCU4_SHADOW_TRANSFER_SLICE_0);
  
     // Tik for CCU4 relessing
-    XMC_CCU4_EnableClock(CCU4_Module_Pointer, CCU4_SLICE_Pointer);
+    XMC_CCU4_EnableClock(CCU4_Module_Pointer, CCU4_Slice_Number);
 
     // Interrupt Period-Match activation
     XMC_CCU4_SLICE_EnableEvent(CCU4_SLICE_Pointer, XMC_CCU4_SLICE_IRQ_ID_PERIOD_MATCH);
